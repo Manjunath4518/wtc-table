@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WTC</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+</head>
+<body>
+   <h3> WTC Points Table</h3>
+    <div class="container">
+        <div class="table-responsive" class="table-container">
+            <table id="standings" class="table table-striped table-hover table-bordered">
+                <thead class="bg-primary text-white" style="background-color: #ff0000;">
+                    <tr>
+                        <th>Rank</th>
+                        <th>Team</th>
+                        <th>Matches</th>
+                        <th class="mobile-hide">Won</th>
+                        <th class="mobile-hide">Loss</th>
+                        <th class="mobile-hide">Draw</th>
+                        <th class="mobile-hide">Ties</th>
+                        <th class="mobile-hide border-right">Penalty</th>
+                        <th>Points</th>
+                        <th>% Points</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+         
+        <div class="matches-container">
+            <h2>Select Possibilites</h2>
+            <div class="match-list" id="matchList"></div>
+        </div>
+    </div>
+
+    <script>
+        // Teams data
+        const teams = [
+            'India', 'Australia', 'Sri Lanka', 'New Zealand',
+            'England', 'South Africa', 'Bangladesh', 'Pakistan', 'West Indies'
+        ];
+
+        // Initialize standings
+        let standings = {
+            'India': { matches: 15, wins: 9, losses: 5, draws: 1, ties: 0, deductions: 2, points: 110, percentPoints: 61.11, total_points_contested: 180 },
+            'Australia': { matches: 13, wins: 8, losses: 4, draws: 1, ties: 0, deductions: 10, points: 90, percentPoints: 57.69, total_points_contested: 156 },
+            'New Zealand': { matches: 12, wins: 6, losses: 6, draws: 0, ties: 0, deductions: 0, points: 72, percentPoints: 50.00, total_points_contested: 144 },
+            'Sri Lanka': { matches: 10, wins: 5, losses: 5, draws: 0, ties: 0, deductions: 0, points: 60, percentPoints: 50.00, total_points_contested: 120 },
+            'England': { matches: 20, wins: 10, losses: 9, draws: 1, ties: 0, deductions: 19, points: 105, percentPoints: 43.75, total_points_contested: 240 },
+            'South Africa': { matches: 9, wins: 5, losses: 3, draws: 1, ties: 0, deductions: 0, points: 64, percentPoints: 59.26, total_points_contested: 108 },
+            'Bangladesh': { matches: 10, wins: 3, losses: 7, draws: 0, ties: 0, deductions: 3, points: 33, percentPoints: 27.50, total_points_contested: 120 },
+            'Pakistan': { matches: 10, wins: 4, losses: 6, draws: 0, ties: 0, deductions: 8, points: 40, percentPoints: 33.33, total_points_contested: 120 },
+            'West Indies': { matches: 9, wins: 1, losses: 6, draws: 2, ties: 0, deductions: 0, points: 20, percentPoints: 18.52, total_points_contested: 108 }
+        };
+
+
+        // Actual remaining matches
+        const remainingMatches = [
+            { seriesId: 1, team1: 'Australia', team2: 'India', matchNumbers: [2, 3, 4, 5] },
+            { seriesId: 2, team1: 'West Indies', team2: 'Bangladesh', matchNumbers: [1, 2] },
+            { seriesId: 3, team1: 'South Africa', team2: 'Sri Lanka', matchNumbers: [2] },
+            { seriesId: 4, team1: 'New Zealand', team2: 'England', matchNumbers: [2, 3] },
+            { seriesId: 5, team1: 'South Africa', team2: 'Pakistan', matchNumbers: [1, 2] },
+            { seriesId: 6, team1: 'Pakistan', team2: 'West Indies', matchNumbers: [1, 2] },
+            { seriesId: 7, team1: 'Sri Lanka', team2: 'Australia', matchNumbers: [1, 2] }
+        ];
+
+
+        function updateStandings() {
+            const tableBody = document.querySelector('#standings tbody');
+            tableBody.innerHTML = '';
+            
+            Object.entries(standings)
+                .sort((a, b) => b[1].percentPoints - a[1].percentPoints)
+                .forEach(([team, data], index) => {
+                    const row = tableBody.insertRow();
+                    row.insertCell().textContent = index + 1;
+                    row.insertCell().textContent = team;
+                    row.insertCell().textContent = data.matches;
+                    
+                    const winsCell = row.insertCell();
+                    winsCell.textContent = data.wins;
+                    winsCell.className = 'mobile-hide';
+                    
+                    const lossesCell = row.insertCell();
+                    lossesCell.textContent = data.losses;
+                    lossesCell.className = 'mobile-hide';
+                    
+                    const drawsCell = row.insertCell();
+                    drawsCell.textContent = data.draws;
+                    drawsCell.className = 'mobile-hide';
+                    
+                    const tiesCell = row.insertCell();
+                    tiesCell.textContent = data.ties;
+                    tiesCell.className = 'mobile-hide';
+                    
+                    const penaltyCell = row.insertCell();
+                    penaltyCell.textContent = data.deductions;
+                    penaltyCell.className = 'mobile-hide';
+                    row.insertCell().textContent = data.points.toFixed(2);
+                    row.insertCell().textContent = data.percentPoints.toFixed(2) + '%';
+                });
+        }
+
+        function createMatchList() {
+    const matchList = document.getElementById('matchList');
+    matchList.innerHTML = '';
+
+    remainingMatches.forEach((series, seriesIndex) => {
+        series.matchNumbers.forEach((matchNumber, i) => {
+            const cardDiv = document.createElement('div');
+            cardDiv.classList.add('card', 'mb-3', 'shadow');
+            cardDiv.style.width = '100%';
+
+            const cardBody = document.createElement('div');
+            cardBody.classList.add('card-body');
+
+            cardBody.innerHTML = `
+                <h5 class="card-title">${series.team1} vs ${series.team2}</h5>
+                <p class="card-text">Match ${matchNumber}</p>
+                <div class="d-flex justify-content-between">
+                    <button class="btn btn-primary btn-sm" onclick="toggleResult(${seriesIndex}, ${i}, '${series.team1}')">${series.team1} Win</button>
+                    <button class="btn btn-primary btn-sm" onclick="toggleResult(${seriesIndex}, ${i}, '${series.team2}')">${series.team2} Win</button>
+                    <button class="btn btn-secondary btn-sm" onclick="toggleResult(${seriesIndex}, ${i}, 'Draw')">Draw</button>
+                    <button class="btn btn-secondary btn-sm" onclick="toggleResult(${seriesIndex}, ${i}, 'Tie')">Tie</button>
+                </div>
+            `;
+
+            cardDiv.appendChild(cardBody);
+            matchList.appendChild(cardDiv);
+        });
+    });
+}
+
+
+        function toggleResult(seriesIndex, matchIndex, result) {
+            const series = remainingMatches[seriesIndex];
+            const pointsPerMatch = 12;
+
+            // Initialize match results if not exist
+            if (!series.results) {
+                series.results = new Array(series.matchNumbers.length).fill(null);
+            }
+
+            // Reset previous result if clicking the same button
+            if (series.results[matchIndex] === result) {
+                updateTeamStats(series.team1, series.results[matchIndex], true, pointsPerMatch);
+                updateTeamStats(series.team2, series.results[matchIndex], true, pointsPerMatch);
+                series.results[matchIndex] = null;
+            } else {
+                // Reset previous result if different
+                if (series.results[matchIndex]) {
+                    updateTeamStats(series.team1, series.results[matchIndex], true, pointsPerMatch);
+                    updateTeamStats(series.team2, series.results[matchIndex], true, pointsPerMatch);
+                }
+
+                // Set new result
+                series.results[matchIndex] = result;
+
+                // Update team stats
+                updateTeamStats(series.team1, result, false, pointsPerMatch);
+                updateTeamStats(series.team2, result, false, pointsPerMatch);
+            }
+
+            // Update UI
+            updateStandings();
+            updateMatchButtons(seriesIndex);
+        }
+
+        function updateTeamStats(team, result, isReset, pointsPerMatch) {
+            const stats = standings[team];
+            const modifier = isReset ? -1 : 1;
+
+            stats.matches += modifier;
+            stats.total_points_contested += pointsPerMatch * modifier;
+
+            if (result === team) {
+                stats.wins += modifier;
+                stats.points += pointsPerMatch * modifier;
+            } else if (result === 'Draw') {
+                stats.draws += modifier;
+                stats.points += (pointsPerMatch / 3) * modifier;
+            } else if (result === 'Tie') {
+                stats.ties += modifier;
+                stats.points += (pointsPerMatch / 2) * modifier;
+            } else if (teams.includes(result)) {
+                if (result !== team) {
+                    stats.losses += modifier;
+                }
+            }
+
+            // Avoid division by zero
+            if (stats.total_points_contested > 0) {
+                stats.percentPoints = (stats.points / stats.total_points_contested) * 100;
+            } else {
+                stats.percentPoints = 0;
+            }
+        }
+
+
+        function updateMatchButtons(seriesIndex) {
+            const seriesDiv = document.querySelectorAll('.series')[seriesIndex];
+            const matchDivs = seriesDiv.querySelectorAll('.match');
+            
+            matchDivs.forEach((matchDiv, index) => {
+                const buttons = matchDiv.querySelectorAll('.toggle-btn');
+                const result = remainingMatches[seriesIndex].results[index];
+
+                buttons.forEach(btn => {
+                    btn.classList.remove('active');
+                    btn.disabled = index > 0 && !remainingMatches[seriesIndex].results[index - 1];
+                });
+
+                if (result) {
+                    const activeButton = Array.from(buttons).find(btn => btn.textContent.includes(result));
+                    if (activeButton) {
+                        activeButton.classList.add('active');
+                    }
+                }
+
+                // Enable next match buttons if this match has a result
+                if (result && index < matchDivs.length - 1) {
+                    const nextMatchButtons = matchDivs[index + 1].querySelectorAll('.toggle-btn');
+                    nextMatchButtons.forEach(btn => btn.disabled = false);
+                }
+            });
+        }
+
+        // Initialize the page
+        updateStandings();
+        createMatchList();
+    </script>
+</body>
+</html>
